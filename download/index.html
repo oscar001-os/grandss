@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Superior Drycleaners</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --navy:  #0d1b2a;
+    --green: #a6ce39;
+    --green-dark: #8bb32f;
+    --bg:    #f5f7fa;
+    --text:  #1e293b;
+    --muted: #64748b;
+    --light: #94a3b8;
+    --border:#e2e8f0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* ── OVERLAY ── */
+#overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 100;
+    backdrop-filter: blur(2px);
+}
+#overlay.open { display: block; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+    position: fixed; top: 0; right: -300px; bottom: 0;
+    width: 280px;
+    background: var(--navy);
+    z-index: 200;
+    transition: right .3s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+}
+#sidebar.open { right: 0; }
+
+.sidebar-header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; justify-content: space-between;
+}
+.sidebar-logo {
+    display: flex; align-items: center; gap: 12px;
+}
+.sidebar-logo img {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--green);
+}
+.sidebar-brand { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
+.sidebar-brand span { color: var(--green); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; display: block; margin-top: 1px; }
+
+.sidebar-close {
+    background: rgba(255,255,255,.07);
+    border: none; border-radius: 8px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #fff; transition: background .2s;
+}
+.sidebar-close:hover { background: rgba(255,255,255,.15); }
+.sidebar-close svg { width: 16px; height: 16px; }
+
+.nav-list { list-style: none; padding: 12px 0; flex: 1; }
+.nav-item { position: relative; }
+
+.nav-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 24px;
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    transition: background .2s, color .2s;
+    cursor: pointer;
+    user-select: none;
+    border: none; background: none; width: 100%; text-align: left;
+    font-family: inherit;
+}
+.nav-link:hover, .nav-link.active-parent {
+    background: rgba(166,206,57,.1);
+    color: var(--green);
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; opacity: .7; }
+.nav-link:hover svg, .nav-link.active-parent svg { opacity: 1; }
+
+.nav-arrow {
+    margin-left: auto;
+    transition: transform .25s;
+    opacity: .5;
+}
+.nav-arrow svg { width: 14px; height: 14px; }
+.nav-item.open > .nav-link .nav-arrow { transform: rotate(180deg); opacity: 1; }
+
+.nav-dropdown {
+    list-style: none;
+    max-height: 0; overflow: hidden;
+    transition: max-height .3s ease;
+    background: rgba(0,0,0,.25);
+}
+.nav-item.open > .nav-dropdown { max-height: 300px; }
+
+.nav-dropdown li a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 24px 11px 52px;
+    color: rgba(255,255,255,.6);
+    text-decoration: none;
+    font-size: 13px; font-weight: 400;
+    transition: color .2s, background .2s;
+}
+.nav-dropdown li a:hover {
+    color: var(--green);
+    background: rgba(166,206,57,.07);
+}
+.nav-dropdown li a svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    font-size: 11px; color: rgba(255,255,255,.3);
+    text-align: center;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+    background: var(--navy);
+    padding: 0 20px; height: 60px;
+    display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+
+.topbar-logo { display: flex; align-items: center; gap: 10px; }
+.topbar-logo img {
+    height: 38px; width: 38px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--green);
+}
+.topbar-name { font-size: 15px; font-weight: 700; color: #fff; }
+.topbar-sub  { font-size: 9px; font-weight: 600; color: var(--green); letter-spacing: .12em; text-transform: uppercase; }
+
+.menu-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,.07);
+    border: none; border-radius: 10px;
+    width: 40px; height: 40px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 5px;
+    cursor: pointer; flex-shrink: 0;
+    transition: background .2s;
+}
+.menu-btn:hover { background: rgba(166,206,57,.15); }
+.menu-btn span {
+    display: block; width: 20px; height: 2px;
+    background: #fff; border-radius: 2px;
+    transition: background .2s;
+}
+.menu-btn:hover span { background: var(--green); }
+
+/* ── HERO ── */
+.hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3050 50%, #0d2a1a 100%);
+    padding: 36px 20px 40px;
+    text-align: center;
+    position: relative; overflow: hidden;
+}
+.hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 60% 40%, rgba(166,206,57,.12) 0%, transparent 65%);
+}
+.hero-inner { position: relative; max-width: 700px; margin: 0 auto; }
+.hero-badge {
+    display: inline-block;
+    background: rgba(166,206,57,.15);
+    border: 1px solid rgba(166,206,57,.3);
+    color: var(--green); font-size: 11px; font-weight: 600;
+    letter-spacing: .15em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+}
+.hero h1 {
+    font-size: clamp(22px, 4vw, 40px);
+    font-weight: 700; color: #fff; line-height: 1.2;
+    margin-bottom: 10px;
+}
+.hero h1 span { color: var(--green); }
+.hero p {
+    font-size: 14px; color: rgba(255,255,255,.65);
+    line-height: 1.7; max-width: 480px; margin: 0 auto 24px;
+}
+.hero-logo {
+    width: 72px; height: 72px;
+    border-radius: 50%; object-fit: cover;
+    border: 3px solid var(--green);
+    box-shadow: 0 0 28px rgba(166,206,57,.3);
+    margin: 0 auto 18px; display: block;
+}
+.hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary {
+    background: var(--green); color: var(--navy);
+    font-weight: 700; font-size: 14px;
+    padding: 11px 24px; border-radius: 10px;
+    text-decoration: none; border: none; cursor: pointer;
+    font-family: inherit; transition: background .2s;
+}
+.btn-primary:hover { background: var(--green-dark); }
+.btn-outline {
+    background: transparent; color: #fff;
+    font-weight: 600; font-size: 14px;
+    padding: 11px 24px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.25);
+    text-decoration: none; cursor: pointer;
+    font-family: inherit; transition: border-color .2s, color .2s;
+}
+.btn-outline:hover { border-color: var(--green); color: var(--green); }
+
+/* ── SECTION COMMON ── */
+section { padding: 70px 20px; }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+.section-label {
+    display: inline-block;
+    background: rgba(166,206,57,.12);
+    border: 1px solid rgba(166,206,57,.25);
+    color: var(--green); font-size: 10px; font-weight: 700;
+    letter-spacing: .2em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+}
+.section-title {
+    font-size: clamp(22px, 3.5vw, 36px);
+    font-weight: 700; color: var(--navy); margin-bottom: 10px;
+}
+.section-sub {
+    font-size: 15px; color: var(--muted); max-width: 540px;
+    line-height: 1.7; margin-bottom: 44px;
+}
+.accent-line {
+    width: 48px; height: 4px;
+    background: linear-gradient(90deg, var(--navy), var(--green));
+    border-radius: 2px; margin-bottom: 16px;
+}
+
+/* ── SERVICES ── */
+#services {
+    background: #fff;
+    padding: 80px 20px 100px;
+}
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+/* ── SCROLL REVEAL ANIMATION ── */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.service-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 22px;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: box-shadow .25s, border-color .25s, transform .25s;
+}
+.service-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 6px 28px rgba(166,206,57,.18);
+    transform: translateY(-4px);
+}
+.service-card-top {
+    display: flex; align-items: center; gap: 14px;
+}
+.service-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    background: var(--navy);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+}
+.service-icon svg { width: 20px; height: 20px; color: var(--green); }
+.service-name { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+.service-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── LOCATION ── */
+#location { background: var(--bg); }
+.location-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px; align-items: start;
+}
+
+/* Photos column — stack of 3 with same card styling */
+.location-photos {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.location-photos-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.location-photo {
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    border: 1px solid var(--border);
+}
+.location-photo img {
+    width: 100%;
+    object-fit: cover; display: block;
+}
+.location-photo.photo-main img  { height: 260px; }
+.location-photo.photo-small img { height: 180px; }
+
+.location-info { display: flex; flex-direction: column; gap: 20px; }
+.info-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+    display: flex; gap: 14px; align-items: flex-start;
+}
+.info-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--navy); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+}
+.info-icon svg { width: 18px; height: 18px; color: var(--green); }
+.info-title { font-size: 11px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+.info-text { font-size: 14px; font-weight: 500; color: var(--navy); line-height: 1.5; }
+
+/* ── USERS ── */
+#users { background: var(--bg); }
+.users-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px; max-width: 600px;
+}
+.user-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 18px; overflow: hidden;
+    text-decoration: none;
+    transition: box-shadow .2s, transform .2s, border-color .2s;
+    display: flex; flex-direction: column;
+}
+.user-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 8px 32px rgba(166,206,57,.18);
+    transform: translateY(-4px);
+}
+.user-card-accent { height: 5px; background: linear-gradient(90deg, var(--navy) 0%, var(--green) 100%); }
+.user-card-body { padding: 28px 24px; text-align: center; }
+.user-avatar {
+    width: 60px; height: 60px;
+    background: var(--navy); border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    box-shadow: 0 4px 14px rgba(13,27,42,.2);
+}
+.user-avatar svg { width: 28px; height: 28px; }
+.user-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.user-desc  { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 20px; }
+.user-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--green); color: var(--navy);
+    font-weight: 700; font-size: 13px;
+    padding: 11px 20px; border-radius: 10px;
+    transition: background .2s;
+}
+.user-card:hover .user-btn { background: var(--green-dark); }
+.user-btn svg { width: 14px; height: 14px; }
+
+/* ── CONTACT + FOOTER ── */
+.bottom-section {
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3050 60%, #0d2a1a 100%);
+    padding: 70px 20px 40px;
+    position: relative;
+    overflow: hidden;
+}
+.bottom-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 60%, rgba(166,206,57,.08) 0%, transparent 60%);
+    pointer-events: none;
+}
+.bottom-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+
+.bottom-section .section-label {
+    background: rgba(166,206,57,.15);
+    border-color: rgba(166,206,57,.3);
+}
+.bottom-section .section-title { color: #fff; }
+.bottom-section .section-sub { color: rgba(255,255,255,.6); }
+.bottom-section .accent-line {
+    background: linear-gradient(90deg, var(--green), rgba(166,206,57,.3));
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 60px;
+}
+.contact-card {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px; padding: 28px 24px;
+    text-align: center;
+    transition: box-shadow .2s, border-color .2s, background .2s;
+    backdrop-filter: blur(4px);
+}
+.contact-card:hover {
+    border-color: var(--green);
+    background: rgba(166,206,57,.08);
+    box-shadow: 0 4px 24px rgba(166,206,57,.15);
+}
+.contact-icon {
+    width: 54px; height: 54px;
+    background: rgba(166,206,57,.15);
+    border: 1px solid rgba(166,206,57,.3);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+}
+.contact-icon svg { width: 22px; height: 22px; color: var(--green); }
+.contact-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
+.contact-value { font-size: 15px; font-weight: 600; color: #fff; text-decoration: none; display: block; line-height: 1.6; }
+a.contact-value:hover { color: var(--green); }
+
+.footer-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,.08);
+    margin: 0 0 28px;
+}
+.footer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+}
+.footer-logo {
+    display: flex; align-items: center; gap: 12px;
+}
+.footer-logo img {
+    width: 40px; height: 40px; border-radius: 50%;
+    object-fit: cover; border: 2px solid var(--green);
+}
+.footer-brand { font-size: 14px; font-weight: 700; color: #fff; }
+.footer-brand span { color: var(--green); font-size: 10px; display: block; text-transform: uppercase; letter-spacing: .1em; margin-top: 1px; }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,.3); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+    .location-grid { grid-template-columns: 1fr; }
+    .location-photos-row { grid-template-columns: 1fr 1fr; }
+    .users-grid { grid-template-columns: 1fr; max-width: 360px; }
+    section { padding: 50px 16px; }
+    .services-grid { grid-template-columns: 1fr; }
+    .footer-row { justify-content: center; text-align: center; }
+}
+@media (max-width: 480px) {
+    .hero { padding: 28px 16px 32px; }
+    .location-photos-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <img src="logo.jpg" alt="Grand Superior Logo">
+            <div class="sidebar-brand">
+                Grand Superior
+                <span>Drycleaners</span>
+            </div>
+        </div>
+        <button class="sidebar-close" onclick="closeSidebar()" aria-label="Close menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+
+    <ul class="nav-list">
+        <li class="nav-item">
+            <a class="nav-link" href="#home" onclick="closeSidebar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/>
+                </svg>
+                Home
+            </a>
+        </li>
+
+        <li class="nav-item" id="drop-services">
+            <button class="nav-link" onclick="toggleDrop('drop-services')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Our Services
+                <span class="nav-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+            </button>
+            <ul class="nav-dropdown">
+                <li><a href="#services" onclick="closeSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    View All Services
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="nav-item" id="drop-contacts">
+            <button class="nav-link" onclick="toggleDrop('drop-contacts')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                Contacts
+                <span class="nav-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+            </button>
+            <ul class="nav-dropdown">
+                <li><a href="tel:0110090947" onclick="closeSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    Call Us
+                </a></li>
+                <li><a href="https://wa.me/254110090947" target="_blank" onclick="closeSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    WhatsApp
+                </a></li>
+                <li><a href="mailto:info@grandsuperiordrycleaners.co.ke" onclick="closeSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Email Us
+                </a></li>
+                <li><a href="#contact" onclick="closeSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Contact Section
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="nav-item" id="drop-location">
+            <button class="nav-link" onclick="toggleDrop('drop-location')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Location
+                <span class="nav-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+            </button>
+            <ul class="nav-dropdown">
+                <li><a href="#location" onclick="closeSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+                    View Our Location
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="nav-item" id="drop-users">
+            <button class="nav-link" onclick="toggleDrop('drop-users')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+                Users
+                <span class="nav-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+            </button>
+            <ul class="nav-dropdown">
+                <li>
+                    <a href="client_login.php" onclick="closeSidebar()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Client Login
+                    </a>
+                </li>
+                <li>
+                    <a href="rider_login.php" onclick="closeSidebar()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Rider Login
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">© 2025 Grand Superior Drycleaners</div>
+</nav>
+
+<!-- TOPBAR -->
+<header class="topbar">
+    <div class="topbar-logo">
+        <img src="logo.jpg" alt="Logo">
+        <div>
+            <div class="topbar-name">Grand Superior</div>
+            <div class="topbar-sub">Drycleaners</div>
+        </div>
+    </div>
+    <button class="menu-btn" onclick="openSidebar()" aria-label="Open menu">
+        <span></span><span></span><span></span>
+    </button>
+</header>
+
+<!-- HERO -->
+<section id="home" class="hero">
+    <div class="hero-inner">
+        <img src="logo.jpg" alt="Grand Superior Drycleaners Logo" class="hero-logo">
+        <div class="hero-badge">Professional Cleaning Services</div>
+        <h1>The <span>Grand Superior</span><br>Laundry &amp; Dry Cleaners</h1>
+        <p>Nairobi's trusted partner for spotless garments. From everyday laundry to delicate wedding gowns — we handle every fabric with care and precision.</p>
+        <div class="hero-btns">
+            <a href="#services" class="btn-primary">Explore Services</a>
+            <a href="#contact" class="btn-outline">Get in Touch</a>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+    <div class="section-inner">
+        <div class="section-label">What We Do</div>
+        <div class="accent-line"></div>
+        <h2 class="section-title">Our Services</h2>
+        <p class="section-sub">We provide comprehensive cleaning solutions for individuals, families, hotels, salons, and corporate clients across Nairobi.</p>
+
+        <div class="services-grid">
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11m0 0h10M9 14H5a2 2 0 00-2 2v4a2 2 0 002 2h4M9 14v7m0 0h6m4-7v7m0 0h-4"/></svg>
+                    </div>
+                    <div class="service-name">Dry Cleaning</div>
+                </div>
+                <div class="service-desc">Expert solvent-based cleaning for your finest garments — suits, coats, silk, and delicate fabrics treated with utmost care to restore their original look and feel.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
+                    </div>
+                    <div class="service-name">Laundry</div>
+                </div>
+                <div class="service-desc">Full wash, dry, and fold service for everyday clothing. We handle bulk loads efficiently with fast turnaround — fresh, clean clothes returned within 24 hours.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div class="service-name">Ironing</div>
+                </div>
+                <div class="service-desc">Precision steam ironing for wrinkle-free, crisp results. Whether for office wear or special occasions, your clothes leave looking polished and presentable.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18v2H3zM5 6v14h14V6H5zm3 3h8m-8 4h5"/></svg>
+                    </div>
+                    <div class="service-name">Duvet &amp; Blanket Cleaning</div>
+                </div>
+                <div class="service-desc">Deep cleaning for duvets, blankets, and heavy bedding. We remove allergens, dust mites, and odors — leaving your bedding hygienic, fluffy, and fresh-smelling.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16m16-16v16M4 8h16M4 16h16M4 4h16"/></svg>
+                    </div>
+                    <div class="service-name">Curtain Cleaning</div>
+                </div>
+                <div class="service-desc">Professional curtain laundering with careful handling of fabrics, pleats, and linings. We restore brightness and eliminate dust — perfect for homes, offices, and hotels.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+                    </div>
+                    <div class="service-name">Carpet Cleaning</div>
+                </div>
+                <div class="service-desc">Deep extraction carpet cleaning to remove stains, dirt, and embedded grime. We revive the color and texture of your carpets, leaving them spotless and sanitized.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                    </div>
+                    <div class="service-name">Sofa Set Cleaning</div>
+                </div>
+                <div class="service-desc">On-site or drop-in sofa and upholstery cleaning for fabric and leather sets. We remove stains, odors, and bacteria — restoring the freshness of your living spaces.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l-8 8 8 8"/><path d="M8 12h16"/></svg>
+                    </div>
+                    <div class="service-name">Corporate Uniforms</div>
+                </div>
+                <div class="service-desc">Bulk uniform cleaning and pressing for businesses, schools, and organizations. We maintain the professional appearance of your team's attire with consistent, high-quality results.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div class="service-name">Wedding Gowns</div>
+                </div>
+                <div class="service-desc">Specialized bridal gown cleaning and preservation. We handle intricate lace, beading, and delicate fabrics with expert care — keeping your dress as stunning as your special day.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div class="service-name">Graduation Gowns</div>
+                </div>
+                <div class="service-desc">Thorough cleaning and pressing of academic gowns, hoods, and regalia. We ensure you look impeccably sharp for your big graduation moment — every pleat in place.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                    </div>
+                    <div class="service-name">Suits &amp; Dresses</div>
+                </div>
+                <div class="service-desc">Careful dry cleaning and pressing of suits, blazers, and formal dresses. We protect linings, buttons, and structure so your formalwear always looks its very best.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12m0 0l-3-3m3 3l3-3M5 8l7-6 7 6v12a1 1 0 01-1 1H6a1 1 0 01-1-1V8z"/></svg>
+                    </div>
+                    <div class="service-name">Leather Jackets</div>
+                </div>
+                <div class="service-desc">Specialized leather cleaning and conditioning to remove grime while preserving suppleness and color. We restore the natural sheen and extend the life of your leather garments.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                    </div>
+                    <div class="service-name">Priest Robes</div>
+                </div>
+                <div class="service-desc">Respectful, thorough cleaning of clerical robes, vestments, and liturgical garments. We treat every piece with the care and reverence these sacred garments deserve.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                    </div>
+                    <div class="service-name">Sports Shoes</div>
+                </div>
+                <div class="service-desc">Deep clean and deodorize sports and casual shoes using safe cleaning agents. We restore whiteness, remove stubborn stains, and leave your shoes looking and smelling brand new.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11m16-11v11M8 10v11m4-11v11m4-11v11"/></svg>
+                    </div>
+                    <div class="service-name">Hotel Uniforms</div>
+                </div>
+                <div class="service-desc">High-volume uniform laundering and pressing for hospitality staff. We maintain consistency and professionalism in every piece — helping your hotel uphold a five-star appearance.</div>
+            </div>
+
+            <div class="service-card reveal">
+                <div class="service-card-top">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    </div>
+                    <div class="service-name">Salon &amp; Barber Towels</div>
+                </div>
+                <div class="service-desc">Reliable bulk towel washing for salons and barbershops. We sanitize and restore fluffiness to your towels on a regular schedule — keeping your salon hygienic and professional.</div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- LOCATION -->
+<section id="location">
+    <div class="section-inner">
+        <div class="section-label">Find Us</div>
+        <div class="accent-line"></div>
+        <h2 class="section-title">Our Location</h2>
+        <p class="section-sub">Visit us at our shop in LuckySummer, Paris flats, Opposite LuckySummer Playground, LyckySummer Babadogo road. We operate Monday to Saturday and offer pick-up &amp; drop-off services within 24 hours.</p>
+
+        <div class="location-grid">
+
+            <!-- Photos column: 1 main + 2 side-by-side below -->
+            <div class="location-photos">
+                <div class="location-photo photo-main">
+                    <img src="location.jpg" alt="Grand Superior Drycleaners Shop Front">
+                </div>
+                <div class="location-photos-row">
+                    <div class="location-photo photo-small">
+                        <img src="location2.jpg" alt="Grand Superior Drycleaners — Shop Signage">
+                    </div>
+                    <div class="location-photo photo-small">
+                        <img src="location3.jpg" alt="Grand Superior Drycleaners — Neighbourhood">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info column -->
+            <div class="location-info">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="info-title">Address</div>
+                        <div class="info-text">The Grand Superior Laundry &amp; Dry Cleaners<br>Nairobi, Kenya</div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="info-title">Working Hours</div>
+                        <div class="info-text">Monday – Saturday<br>Open Daily · Pick &amp; Drop Available</div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="info-title">Quick Call</div>
+                        <div class="info-text">0110 090 947 / 0734 903 095</div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8l6 4-6 4V8z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="info-title">Services Available</div>
+                        <div class="info-text">Professional Dry Cleaning · Bulk Wash &amp; Fold · Pick &amp; Drop</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT + FOOTER -->
+<div class="bottom-section" id="contact">
+    <div class="bottom-inner">
+        <div class="section-label">Get in Touch</div>
+        <div class="accent-line"></div>
+        <h2 class="section-title">Contact Us</h2>
+        <p class="section-sub">Reach us through any of the channels below — we're always ready to assist you.</p>
+
+        <div class="contact-grid">
+
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                </div>
+                <div class="contact-label">Phone</div>
+                <a href="tel:0110090947" class="contact-value">0110 090 947</a>
+                <a href="tel:0734903095" class="contact-value">0734 903 095</a>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                    </svg>
+                </div>
+                <div class="contact-label">WhatsApp</div>
+                <a href="https://wa.me/254110090947" target="_blank" rel="noopener" class="contact-value">0110 090 947</a>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                </div>
+                <div class="contact-label">Email</div>
+                <a href="mailto:info@grandsuperiordrycleaners.co.ke" class="contact-value" style="font-size:13px;">info@grandsuperiordrycleaners.co.ke</a>
+            </div>
+
+        </div>
+
+        <hr class="footer-divider">
+        <div class="footer-row">
+            <div class="footer-logo">
+                <img src="logo.jpg" alt="Logo">
+                <div class="footer-brand">
+                    Grand Superior
+                    <span>Drycleaners</span>
+                </div>
+            </div>
+            <p class="footer-copy">© 2025 Grand Superior Drycleaners. All rights reserved.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── SIDEBAR ── */
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+function toggleDrop(id) {
+    const item = document.getElementById(id);
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.nav-item.open').forEach(el => {
+        if (el.id !== id) el.classList.remove('open');
+    });
+    item.classList.toggle('open', !isOpen);
+    const btn = item.querySelector('.nav-link');
+    btn.classList.toggle('active-parent', !isOpen);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
+/* ── SCROLL REVEAL ── */
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+            const cards = entry.target.closest('.services-grid')
+                ? Array.from(entry.target.closest('.services-grid').querySelectorAll('.reveal'))
+                : [];
+            const idx = cards.indexOf(entry.target);
+            const delay = idx >= 0 ? (idx % 2) * 80 : 0;
+            setTimeout(() => {
+                entry.target.classList.add('visible');
+            }, delay);
+            revealObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+</script>
+
+</body>
+</html>
